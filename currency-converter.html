@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Vietnam Trip - Currency Converter</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .header .subtitle {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .container {
+      padding: 20px 16px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .currency-card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .currency-card.active {
+      transform: scale(1.02);
+      box-shadow: 0 8px 30px rgba(126, 34, 206, 0.3);
+    }
+
+    .currency-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #7e22ce, #2a5298);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .currency-card.active::before {
+      opacity: 1;
+    }
+
+    .currency-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .flag {
+      font-size: 32px;
+      margin-right: 12px;
+      line-height: 1;
+    }
+
+    .currency-info {
+      flex: 1;
+    }
+
+    .currency-name {
+      font-size: 14px;
+      color: #6b7280;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .currency-code {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 16px 16px 16px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 28px;
+      font-weight: 600;
+      color: #1f2937;
+      background: #f9fafb;
+      transition: all 0.2s ease;
+      text-align: right;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #7e22ce;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(126, 34, 206, 0.1);
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"]::placeholder {
+      color: #d1d5db;
+    }
+
+    .quick-amounts {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      flex: 1;
+      min-width: 70px;
+      padding: 10px 12px;
+      background: #f3f4f6;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4b5563;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+
+    .quick-btn:active {
+      transform: scale(0.95);
+      background: #7e22ce;
+      color: white;
+    }
+
+    .exchange-rates {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 24px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .exchange-rates h3 {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .rate-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .rate-row:last-child {
+      border-bottom: none;
+    }
+
+    .rate-label {
+      font-size: 15px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .rate-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #7e22ce;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      margin-right: 6px;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    .status-indicator.offline {
+      background: #f59e0b;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .clear-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      background: white;
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .clear-btn:active {
+      transform: scale(0.9);
+      background: #fee;
+    }
+
+    .updating {
+      animation: pulse 0.5s ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    @supports (padding: max(0px)) {
+      body {
+        padding-top: max(0px, env(safe-area-inset-top));
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>💱 Vietnam Trip Currency</h1>
+    <div class="subtitle">VND • USD • INR</div>
+  </div>
+
+  <div class="container">
+    <div class="currency-card" id="card-vnd">
+      <div class="currency-header">
+        <span class="flag">🇻🇳</span>
+        <div class="currency-info">
+          <div class="currency-name">Vietnamese Dong</div>
+          <div class="currency-code">VND</div>
+        </div>
+      </div>
+      <input type="number" id="vnd" placeholder="0" inputmode="decimal">
+      <div class="quick-amounts">
+        <button class="quick-btn" data-value="50000">50k</button>
+        <button class="quick-btn" data-value="100000">100k</button>
+        <button class="quick-btn" data-value="200000">200k</button>
+        <button class="quick-btn" data-value="500000">500k</button>
+      </div>
+    </div>
+
+    <div class="currency-card" id="card-usd">
+      <div class="currency-header">
+        <span class="flag">🇺🇸</span>
+        <div class="currency-info">
+          <div class="currency-name">US Dollar</div>
+          <div class="currency-code">USD</div>
+        </div>
+      </div>
+      <input type="number" id="usd" placeholder="0" inputmode="decimal">
+      <div class="quick-amounts">
+        <button class="quick-btn" data-value="10">$10</button>
+        <button class="quick-btn" data-value="20">$20</button>
+        <button class="quick-btn" data-value="50">$50</button>
+        <button class="quick-btn" data-value="100">$100</button>
+      </div>
+    </div>
+
+    <div class="currency-card" id="card-inr">
+      <div class="currency-header">
+        <span class="flag">🇮🇳</span>
+        <div class="currency-info">
+          <div class="currency-name">Indian Rupee</div>
+          <div class="currency-code">INR</div>
+        </div>
+      </div>
+      <input type="number" id="inr" placeholder="0" inputmode="decimal">
+      <div class="quick-amounts">
+        <button class="quick-btn" data-value="500">₹500</button>
+        <button class="quick-btn" data-value="1000">₹1k</button>
+        <button class="quick-btn" data-value="2000">₹2k</button>
+        <button class="quick-btn" data-value="5000">₹5k</button>
+      </div>
+    </div>
+
+    <div class="exchange-rates">
+      <h3>📊 Exchange Rates</h3>
+      <div class="rate-row">
+        <span class="rate-label">1 USD</span>
+        <span class="rate-value" id="rate-usd-vnd">25,400 ₫</span>
+      </div>
+      <div class="rate-row">
+        <span class="rate-label">1 USD</span>
+        <span class="rate-value" id="rate-usd-inr">83.50 ₹</span>
+      </div>
+      <div class="rate-row">
+        <span class="rate-label">1,000 VND</span>
+        <span class="rate-value" id="rate-vnd-usd">$0.039</span>
+      </div>
+      <div class="rate-row">
+        <span class="rate-label">100 INR</span>
+        <span class="rate-value" id="rate-inr-vnd">30,419 ₫</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="clear-btn" id="clear-all" title="Clear all">🗑️</button>
+
+  <div class="footer">
+    <div id="status-text">
+      <span class="status-indicator" id="status-dot"></span>
+      <span id="status-message">Loading rates...</span>
+    </div>
+    <div style="margin-top: 6px; font-size: 11px;" id="last-update">Last updated: Never</div>
+  </div>
+
+  <script>
+    let rates = {
+      USD: 1,
+      VND: 25400,
+      INR: 83.50
+    };
+
+    const inputs = {
+      vnd: document.getElementById('vnd'),
+      usd: document.getElementById('usd'),
+      inr: document.getElementById('inr')
+    };
+
+    const cards = {
+      vnd: document.getElementById('card-vnd'),
+      usd: document.getElementById('card-usd'),
+      inr: document.getElementById('card-inr')
+    };
+
+    const CACHE_KEY = 'currency_rates_cache';
+    const CACHE_DURATION = 3 * 60 * 60 * 1000; // 3 hours cache
+    const API_URL = 'https://api.exchangerate-api.com/v4/latest/USD';
+
+    function updateRateDisplay() {
+      document.getElementById('rate-usd-vnd').textContent = `${Math.round(rates.VND).toLocaleString()} ₫`;
+      document.getElementById('rate-usd-inr').textContent = `${rates.INR.toFixed(2)} ₹`;
+      document.getElementById('rate-vnd-usd').textContent = `$${(1000 / rates.VND).toFixed(3)}`;
+      document.getElementById('rate-inr-vnd').textContent = `${Math.round((100 / rates.INR) * rates.VND).toLocaleString()} ₫`;
+    }
+
+    function updateStatus(message, isOnline = true) {
+      const statusDot = document.getElementById('status-dot');
+      const statusMessage = document.getElementById('status-message');
+      statusMessage.textContent = message;
+      if (isOnline) {
+        statusDot.classList.remove('offline');
+      } else {
+        statusDot.classList.add('offline');
+      }
+    }
+
+    function updateTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMinutes = Math.floor((now - date) / (1000 * 60));
+      let timeText;
+      if (diffMinutes < 1) {
+        timeText = 'Just now';
+      } else if (diffMinutes < 60) {
+        timeText = `${diffMinutes} min ago`;
+      } else {
+        const diffHours = Math.floor(diffMinutes / 60);
+        timeText = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      }
+      document.getElementById('last-update').textContent = `Last updated: ${timeText}`;
+    }
+
+    function loadFromCache() {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const data = JSON.parse(cached);
+          const age = Date.now() - data.timestamp;
+          if (age < CACHE_DURATION) {
+            rates = data.rates;
+            updateRateDisplay();
+            updateTimestamp(data.timestamp);
+            updateStatus('Using cached rates', false);
+            return true;
+          }
+        }
+      } catch (e) {
+        console.log('Cache load failed:', e);
+      }
+      return false;
+    }
+
+    function saveToCache(ratesData) {
+      try {
+        const cacheData = {
+          rates: ratesData,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      } catch (e) {
+        console.log('Cache save failed:', e);
+      }
+    }
+
+    async function fetchLiveRates() {
+      try {
+        updateStatus('Updating rates...', true);
+        const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('API request failed');
+        const data = await response.json();
+        const newRates = {
+          USD: 1,
+          VND: data.rates.VND,
+          INR: data.rates.INR
+        };
+        rates = newRates;
+        updateRateDisplay();
+        saveToCache(newRates);
+        updateTimestamp(Date.now());
+        updateStatus('Live rates • Online', true);
+        Object.keys(inputs).forEach(currency => {
+          if (inputs[currency].value) {
+            handleInput(currency);
+          }
+        });
+      } catch (error) {
+        console.error('Failed to fetch rates:', error);
+        if (loadFromCache()) {
+          updateStatus('Using cached rates • Offline', false);
+        } else {
+          updateStatus('Using default rates • Offline', false);
+          updateRateDisplay();
+        }
+      }
+    }
+
+    async function initializeRates() {
+      loadFromCache();
+      await fetchLiveRates();
+    }
+
+    function formatNumber(value, currency) {
+      if (value === '' || value === null || value === undefined) return '';
+      const num = parseFloat(value);
+      if (isNaN(num) || num === 0) return '';
+      if (currency === 'VND') {
+        return Math.round(num).toString();
+      }
+      return num.toFixed(2);
+    }
+
+    function convertCurrency(amount, fromCurrency, toCurrency) {
+      if (fromCurrency === toCurrency) return amount;
+      const amountInUSD = amount / rates[fromCurrency];
+      return amountInUSD * rates[toCurrency];
+    }
+
+    function setActiveCard(currency) {
+      Object.keys(cards).forEach(key => cards[key].classList.remove('active'));
+      if (currency) cards[currency].classList.add('active');
+    }
+
+    function handleInput(changedCurrency) {
+      setActiveCard(changedCurrency);
+      const value = inputs[changedCurrency].value.replace(/,/g, '');
+      if (value === '' || parseFloat(value) === 0) {
+        Object.keys(inputs).forEach(currency => {
+          if (currency !== changedCurrency) {
+            inputs[currency].value = '';
+          }
+        });
+        return;
+      }
+      const amount = parseFloat(value);
+      if (isNaN(amount)) return;
+      Object.keys(inputs).forEach(targetCurrency => {
+        if (targetCurrency !== changedCurrency) {
+          const convertedValue = convertCurrency(
+            amount,
+            changedCurrency.toUpperCase(),
+            targetCurrency.toUpperCase()
+          );
+          inputs[targetCurrency].classList.add('updating');
+          inputs[targetCurrency].value = formatNumber(convertedValue, targetCurrency.toUpperCase());
+          setTimeout(() => inputs[targetCurrency].classList.remove('updating'), 300);
+        }
+      });
+    }
+
+    Object.keys(inputs).forEach(currency => {
+      inputs[currency].addEventListener('input', () => handleInput(currency));
+      inputs[currency].addEventListener('focus', () => setActiveCard(currency));
+      inputs[currency].addEventListener('blur', () => setTimeout(() => setActiveCard(null), 200));
+      inputs[currency].addEventListener('keydown', (e) => {
+        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+          e.preventDefault();
+        }
+      });
+    });
+
+    document.querySelectorAll('.quick-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const value = e.target.dataset.value;
+        const container = e.target.closest('.currency-card');
+        const input = container.querySelector('input');
+        const currency = input.id;
+        input.value = formatNumber(value, currency.toUpperCase());
+        handleInput(currency);
+        e.target.style.background = '#7e22ce';
+        e.target.style.color = 'white';
+        setTimeout(() => {
+          e.target.style.background = '';
+          e.target.style.color = '';
+        }, 200);
+      });
+    });
+
+    document.getElementById('clear-all').addEventListener('click', () => {
+      Object.keys(inputs).forEach(currency => inputs[currency].value = '');
+      setActiveCard(null);
+      const btn = document.getElementById('clear-all');
+      btn.style.transform = 'scale(0.9) rotate(15deg)';
+      setTimeout(() => btn.style.transform = '', 200);
+    });
+
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, { passive: false });
+
+    updateRateDisplay();
+    initializeRates();
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const data = JSON.parse(cached);
+          const age = Date.now() - data.timestamp;
+          // Only refresh if cache is older than 3 hours
+          if (age > CACHE_DURATION) {
+            fetchLiveRates();
+          } else {
+            updateTimestamp(data.timestamp);
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
